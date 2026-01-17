@@ -13,18 +13,18 @@ import (
 func main() {
 	cfg := config.LoadConfig()
 
-	bookStore := store.NewMemStore()
+	memStore := store.NewMemStore()
 
 	log.Printf("Loading database from: %s", cfg.DBPath)
-	if err := bookStore.LoadFromFile(cfg.DBPath); err != nil {
+	if err := memStore.LoadFromFile(cfg.DBPath); err != nil {
 		log.Fatalf("Failed to load database: %v", err)
 	}
 
-	bookHandler := &handlers.BookHandler{Store: bookStore}
+	bookHandler := &handlers.BookHandler{Store: memStore}
+	authorHandler := &handlers.AuthorHandler{Store: memStore}
 
-	router.Router(bookHandler)
+	router.Router(bookHandler, authorHandler)
 
 	fmt.Printf("Running Server on port :%s\n", cfg.ServerPort)
 	log.Fatal(http.ListenAndServe(":"+cfg.ServerPort, nil))
 }
-

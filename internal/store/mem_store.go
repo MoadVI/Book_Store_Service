@@ -24,12 +24,13 @@ func NewMemStore() *MemStore {
 }
 
 func (s *MemStore) SaveToFile() error {
-	s.mu.RLock()
+	s.mu.Lock()
 	path := s.dbPath
-	s.mu.RUnlock()
+	s.mu.Unlock()
 
 	if path == "" {
 		path = getDBPath()
+
 	}
 
 	data, err := json.MarshalIndent(s, "", "    ")
@@ -61,7 +62,7 @@ func (s *MemStore) LoadFromFile(path string) error {
 func getDBPath() string {
 	path := os.Getenv("DB_PATH")
 	if path == "" {
-		return "internal/db/database.json"
+		return "database.json"
 	}
 	return path
 }

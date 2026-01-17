@@ -9,7 +9,7 @@ type Config struct {
 
 func LoadConfig() *Config {
 	return &Config{
-		DBPath:     getEnv("DB_PATH", "internal/db/database.json"),
+		DBPath:     getEnv("DB_PATH", "database.json"),
 		ServerPort: getEnv("PORT", "8080"),
 	}
 }

@@ -58,9 +58,10 @@
 * ~~Tests isolated from persistence~~
 * ~~Covers create, read, delete, search paths~~
 
+### Using Postman with 1000 POST requests
 
-* ⬜ Concurrent request tests
-
+### Finished in 21 seconds with average response time of 9ms
+* ~~Concurrent request tests~~ 
 ---
 
 
@@ -68,13 +69,13 @@
 
 ### Authors API
 
-* ⬜ POST `/authors` – create author
-* ⬜ GET `/authors/{id}` – retrieve author by ID
-* ⬜ PUT `/authors/{id}` – update author
-* ⬜ DELETE `/authors/{id}` – delete author
-* ⬜ GET `/authors` – list all authors
-* ⬜ In-memory author store with mutex
-* ⬜ JSON persistence for authors
+* ~~POST `/authors` – create author~~
+* ~~GET `/authors/{id}` – retrieve author by ID~~
+* ~~PUT `/authors/{id}` – update author~~
+* ~~DELETE `/authors/{id}` – delete author~~
+* ~~GET `/authors` – list all authors~~
+* ~~In-memory author store with mutex~~
+* ~~JSON persistence for authors~~
 * ⬜ Author handler unit tests
 
 ---
@@ -191,7 +192,7 @@ go test ./internal/http/handlers/HandlersTests -v
 
 ##  Next Milestones 
 
-1. Finish Authors API
+~~1. Finish Authors API~~
 2. Implement Customers
 3. Implement Orders
 4. Add background sales report generator
