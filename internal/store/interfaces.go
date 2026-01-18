@@ -19,6 +19,7 @@ type AuthorStore interface {
 	ListAuthors() ([]models.Author, error)
 	UpdateAuthor(id int, author models.Author) (models.Author, error)
 	DeleteAuthor(id int) error
+	AuthorExists(id int) bool
 }
 
 type CustomerStore interface {
@@ -26,6 +27,7 @@ type CustomerStore interface {
 	GetCustomer(id int) (models.Customer, error)
 	UpdateCustomer(id int, customer models.Customer) (models.Customer, error)
 	ListCustomers() ([]models.Customer, error)
+	DeleteCustomer(id int) error
 }
 
 type OrderStore interface {

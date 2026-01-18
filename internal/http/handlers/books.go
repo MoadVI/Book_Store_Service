@@ -6,13 +6,15 @@ import (
 	"Book-Store/internal/store"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
 )
 
 type BookHandler struct {
-	Store store.BookStore
+	BookStore   store.BookStore
+	AuthorStore store.AuthorStore
 }
 
 func (h *BookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -67,27 +69,57 @@ func (h *BookHandler) createBook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdBook, _ := h.Store.CreateBook(book)
+	if !h.AuthorStore.AuthorExists(book.Author.ID) {
+		log.Printf("Cannot create book: author %d not found", book.Author.ID)
+		response.RespondWithError(w, http.StatusNotFound, "Author not found")
+		return
+	}
+	createdBook, _ := h.BookStore.CreateBook(book)
 	response.RespondWithJSON(w, http.StatusCreated, createdBook)
 
 }
 
 func (h *BookHandler) searchBooks(w http.ResponseWriter, r *http.Request) {
 	title := r.URL.Query().Get("title")
-	criteria := models.SearchCriteria{Title: title}
+	author := r.URL.Query().Get("author")
+	genre := r.URL.Query().Get("genre")
+	sortBy := r.URL.Query().Get("sort_by")
+	sortOrder := r.URL.Query().Get("sort_order")
 
-	books, err := h.Store.SearchBooks(criteria)
+	var minPricePtr, maxPricePtr *float64
+	if s := r.URL.Query().Get("min_price"); s != "" {
+		if f, err := strconv.ParseFloat(s, 64); err == nil {
+			minPricePtr = &f
+		}
+	}
+	if s := r.URL.Query().Get("max_price"); s != "" {
+		if f, err := strconv.ParseFloat(s, 64); err == nil {
+			maxPricePtr = &f
+		}
+	}
+
+	criteria := models.SearchCriteria{
+		Title:     title,
+		Author:    author,
+		Genre:     genre,
+		MinPrice:  minPricePtr,
+		MaxPrice:  maxPricePtr,
+		SortBy:    sortBy,
+		SortOrder: sortOrder,
+	}
+
+	books, err := h.BookStore.SearchBooks(criteria)
 	if err != nil {
-		fmt.Println("Error finding Books")
+		fmt.Println("Error finding Books:", err)
 		response.RespondWithError(w, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
-	response.RespondWithJSON(w, http.StatusOK, books)
 
+	response.RespondWithJSON(w, http.StatusOK, books)
 }
 
 func (h *BookHandler) getBookById(w http.ResponseWriter, id int) {
-	book, lookUpError := h.Store.GetBook(id)
+	book, lookUpError := h.BookStore.GetBook(id)
 	if lookUpError != nil {
 		fmt.Printf("Error finding the book using id : %d\nError: %v\n", id, lookUpError)
 		response.RespondWithError(w, http.StatusNotFound, "Book does not exist")
@@ -108,7 +140,13 @@ func (h *BookHandler) updateBook(w http.ResponseWriter, r *http.Request, id int)
 		return
 	}
 
-	updated_book, update_err := h.Store.UpdateBook(id, book)
+	if !h.AuthorStore.AuthorExists(book.Author.ID) {
+		log.Printf("Cannot create book: author %d not found", book.Author.ID)
+		response.RespondWithError(w, http.StatusNotFound, "Author not found")
+		return
+	}
+
+	updated_book, update_err := h.BookStore.UpdateBook(id, book)
 	if update_err != nil {
 		response.RespondWithError(w, http.StatusNotFound, "Book not found")
 		return
@@ -119,7 +157,7 @@ func (h *BookHandler) updateBook(w http.ResponseWriter, r *http.Request, id int)
 }
 
 func (h *BookHandler) deleteBook(w http.ResponseWriter, id int) {
-	delete_err := h.Store.DeleteBook(id)
+	delete_err := h.BookStore.DeleteBook(id)
 	if delete_err != nil {
 		response.RespondWithError(w, http.StatusNotFound, "Book not found")
 		return

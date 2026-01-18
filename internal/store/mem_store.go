@@ -8,25 +8,25 @@ import (
 )
 
 type MemStore struct {
-	mu      sync.RWMutex
-	dbPath  string
-	Books   map[int]models.Book   `json:"books"`
-	Authors map[int]models.Author `json:"authors"`
-	Orders  map[int]models.Order  `json:"orders"`
+	mu        sync.RWMutex
+	dbPath    string
+	Books     map[int]models.Book     `json:"books"`
+	Authors   map[int]models.Author   `json:"authors"`
+	Customers map[int]models.Customer `json:"customers"`
+	Orders    map[int]models.Order    `json:"orders"`
 }
 
 func NewMemStore() *MemStore {
 	return &MemStore{
-		Books:   make(map[int]models.Book),
-		Authors: make(map[int]models.Author),
-		Orders:  make(map[int]models.Order),
+		Books:     make(map[int]models.Book),
+		Authors:   make(map[int]models.Author),
+		Customers: make(map[int]models.Customer),
+		Orders:    make(map[int]models.Order),
 	}
 }
 
 func (s *MemStore) SaveToFile() error {
-	s.mu.Lock()
 	path := s.dbPath
-	s.mu.Unlock()
 
 	if path == "" {
 		path = getDBPath()

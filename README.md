@@ -23,7 +23,6 @@
 * ~~Address model~~
 * ~~SalesReport + BookSales models~~
 * ~~Proper JSON tags on all structs~~
-* ~~RFC3339 timestamps for date fields~~
 
 ---
 
@@ -48,7 +47,7 @@
 * ~~Nested author creation & normalization~~
 * ~~Correct HTTP status codes~~
 * ~~Error responses in JSON~~
-
+* ~~Handle Author Book relationship~~
 ---
 
 ###  Testing 
@@ -82,15 +81,15 @@
 
 ### Customers API
 
-* ⬜ POST `/customers` – create customer
-* ⬜ GET `/customers/{id}` – retrieve customer
-* ⬜ PUT `/customers/{id}` – update customer
-* ⬜ DELETE `/customers/{id}` – delete customer
-* ⬜ GET `/customers` – list customers
-* ⬜ In-memory customer store with mutex
-* ⬜ JSON persistence for customers
-* ⬜ Customer handler & store tests
-
+* ~~POST `/customers` – create customer~~
+* ~~GET `/customers/{id}` – retrieve customer~~
+* ~~PUT `/customers/{id}` – update customer~~
+* ~~DELETE `/customers/{id}` – delete customer~~
+* ~~GET `/customers` – list customers~~
+* ~~In-memory customer store with mutex~~
+* ~~JSON persistence for customers~~
+* ~~Customer handler~~ 
+* ⬜ Customers tests
 ---
 
 ### Orders API
@@ -150,6 +149,28 @@
 * ⬜ Background job logging
 
 ---
+## Metrics
+
+### Customers Metrics
+
+* ⬜ Total Customers
+
+### Books Metrics
+
+* ⬜ total Books
+* ⬜ Books per genre 
+* ⬜ Out of stock Books
+
+### Authors Metrics
+
+* ⬜ Total Authors
+* ⬜ Books per author
+
+### API Metrics
+
+* ⬜ Requests per Endpoint
+
+---
 
 ##  Documentation
 
@@ -193,7 +214,7 @@ go test ./internal/http/handlers/HandlersTests -v
 ##  Next Milestones 
 
 ~~1. Finish Authors API~~
-2. Implement Customers
+~~2. Implement Customers~~
 3. Implement Orders
 4. Add background sales report generator
 5. Add graceful shutdown with contexts

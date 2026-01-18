@@ -69,7 +69,7 @@ func (h *AuthorHandler) createAuthor(w http.ResponseWriter, r *http.Request) {
 
 	created_author, err := h.Store.CreateAuthor(author)
 	if err != nil {
-		fmt.Printf("Fialed tp create Author: %v\n", err)
+		fmt.Printf("Fialed to create Author: %v\n", err)
 		response.RespondWithError(w, http.StatusInternalServerError, "Failed to save Author")
 		return
 	}

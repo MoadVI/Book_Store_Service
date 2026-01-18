@@ -29,6 +29,7 @@ func (s *MemStore) CreateAuthor(author models.Author) (models.Author, error) {
 
 func (s *MemStore) GetAuthor(id int) (models.Author, error) {
 	s.mu.RLock()
+	defer s.mu.RUnlock()
 
 	author, exists := s.Authors[id]
 	if !exists {
@@ -80,4 +81,13 @@ func (s *MemStore) DeleteAuthor(id int) error {
 	_ = s.SaveToFile()
 	return nil
 
+}
+
+func (s *MemStore) AuthorExists(id int) bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if _, exists := s.Authors[id]; !exists {
+		return false
+	}
+	return true
 }
