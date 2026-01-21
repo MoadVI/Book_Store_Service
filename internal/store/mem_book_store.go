@@ -2,13 +2,20 @@ package store
 
 import (
 	"Book-Store/internal/models"
+	"context"
 	"errors"
 	"slices"
 	"sort"
 	"strings"
 )
 
-func (s *MemStore) CreateBook(book models.Book) (models.Book, error) {
+func (s *MemStore) CreateBook(ctx context.Context, book models.Book) (models.Book, error) {
+	select {
+	case <-ctx.Done():
+		return models.Book{}, ctx.Err()
+	default:
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -27,6 +34,7 @@ func (s *MemStore) CreateBook(book models.Book) (models.Book, error) {
 			maxID = id
 		}
 	}
+
 	book.ID = maxID + 1
 	s.Books[book.ID] = book
 
@@ -37,7 +45,13 @@ func (s *MemStore) CreateBook(book models.Book) (models.Book, error) {
 	return book, nil
 }
 
-func (s *MemStore) GetBook(id int) (models.Book, error) {
+func (s *MemStore) GetBook(ctx context.Context, id int) (models.Book, error) {
+	select {
+	case <-ctx.Done():
+		return models.Book{}, ctx.Err()
+	default:
+	}
+
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -45,11 +59,16 @@ func (s *MemStore) GetBook(id int) (models.Book, error) {
 	if !exists {
 		return models.Book{}, errors.New("book not found")
 	}
-
 	return book, nil
 }
 
-func (s *MemStore) UpdateBook(id int, book models.Book) (models.Book, error) {
+func (s *MemStore) UpdateBook(ctx context.Context, id int, book models.Book) (models.Book, error) {
+	select {
+	case <-ctx.Done():
+		return models.Book{}, ctx.Err()
+	default:
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -76,7 +95,13 @@ func (s *MemStore) UpdateBook(id int, book models.Book) (models.Book, error) {
 	return book, nil
 }
 
-func (s *MemStore) DeleteBook(id int) error {
+func (s *MemStore) DeleteBook(ctx context.Context, id int) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -85,27 +110,40 @@ func (s *MemStore) DeleteBook(id int) error {
 	}
 
 	delete(s.Books, id)
+
 	if err := s.SaveToFile(); err != nil {
 		return err
 	}
+
 	return nil
 }
 
-func (s *MemStore) SearchBooks(criteria models.SearchCriteria) ([]models.Book, error) {
+func (s *MemStore) SearchBooks(ctx context.Context, criteria models.SearchCriteria) ([]models.Book, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
+
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	results := make([]models.Book, 0)
-
 	for _, b := range s.Books {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+
 		if criteria.Title != "" && !strings.Contains(strings.ToLower(b.Title), strings.ToLower(criteria.Title)) {
 			continue
 		}
+
 		if criteria.Author != "" {
 			searchWords := strings.Fields(strings.ToLower(criteria.Author))
 			first := strings.ToLower(b.Author.FirstName)
 			last := strings.ToLower(b.Author.LastName)
-
 			matched := false
 			for _, word := range searchWords {
 				if strings.Contains(first, word) || strings.Contains(last, word) {
@@ -117,15 +155,19 @@ func (s *MemStore) SearchBooks(criteria models.SearchCriteria) ([]models.Book, e
 				continue
 			}
 		}
+
 		if criteria.Genre != "" && !slices.Contains(b.Genres, criteria.Genre) {
 			continue
 		}
+
 		if criteria.MinPrice != nil && b.Price < *criteria.MinPrice {
 			continue
 		}
+
 		if criteria.MaxPrice != nil && b.Price > *criteria.MaxPrice {
 			continue
 		}
+
 		results = append(results, b)
 	}
 
@@ -151,3 +193,10 @@ func (s *MemStore) SearchBooks(criteria models.SearchCriteria) ([]models.Book, e
 	return results, nil
 }
 
+func (s *MemStore) BookExists(id int) bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	_, exists := s.Books[id]
+	return exists
+}

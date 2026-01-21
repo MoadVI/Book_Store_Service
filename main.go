@@ -26,8 +26,9 @@ func main() {
 	}
 	authorHandler := &handlers.AuthorHandler{Store: memStore}
 	customerHandler := &handlers.CustomerHandler{Store: memStore}
+	orderHandler := &handlers.OrderHandler{Store: memStore}
 
-	router.Router(bookHandler, authorHandler, customerHandler)
+	router.Router(bookHandler, authorHandler, customerHandler, orderHandler)
 
 	fmt.Printf("Running Server on port :%s\n", cfg.ServerPort)
 	log.Fatal(http.ListenAndServe(":"+cfg.ServerPort, nil))

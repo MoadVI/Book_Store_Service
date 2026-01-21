@@ -9,8 +9,10 @@ func Router(
 	bookHandler *handlers.BookHandler,
 	authorHandler *handlers.AuthorHandler,
 	customerHandler *handlers.CustomerHandler,
+	orderHandler *handlers.OrderHandler,
 ) {
 	http.Handle("/books/", bookHandler)
 	http.Handle("/authors/", authorHandler)
 	http.Handle("/customers/", customerHandler)
+	http.Handle("/orders/", orderHandler)
 }

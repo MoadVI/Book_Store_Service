@@ -5,7 +5,6 @@ import (
 	"Book-Store/internal/response"
 	"Book-Store/internal/store"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -19,13 +18,15 @@ type BookHandler struct {
 
 func (h *BookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	path := strings.Trim(r.URL.Path, "/")
+	path = strings.TrimSpace(path)
 	pathParts := strings.Split(path, "/")
 
 	var id int
 	var hasID bool
 
 	if len(pathParts) > 1 && pathParts[1] != "" {
-		parsedID, err := strconv.Atoi(pathParts[1])
+		idStr := strings.TrimSpace(pathParts[1])
+		parsedID, err := strconv.Atoi(idStr)
 		if err == nil {
 			id = parsedID
 			hasID = true
@@ -37,7 +38,7 @@ func (h *BookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.createBook(w, r)
 	case http.MethodGet:
 		if hasID {
-			h.getBookById(w, id)
+			h.getBookById(w, r, id)
 		} else {
 			h.searchBooks(w, r)
 		}
@@ -52,7 +53,7 @@ func (h *BookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			response.RespondWithError(w, http.StatusBadRequest, "Missing Book ID")
 			return
 		}
-		h.deleteBook(w, id)
+		h.deleteBook(w, r, id)
 
 	default:
 		response.RespondWithError(w, http.StatusMethodNotAllowed, "Method not allowed")
@@ -60,11 +61,11 @@ func (h *BookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BookHandler) createBook(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	defer r.Body.Close()
 
 	var book models.Book
 	if err := json.NewDecoder(r.Body).Decode(&book); err != nil {
-		fmt.Println("JSON Decode Error in createBook: ", err)
 		response.RespondWithError(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
@@ -74,12 +75,17 @@ func (h *BookHandler) createBook(w http.ResponseWriter, r *http.Request) {
 		response.RespondWithError(w, http.StatusNotFound, "Author not found")
 		return
 	}
-	createdBook, _ := h.BookStore.CreateBook(book)
-	response.RespondWithJSON(w, http.StatusCreated, createdBook)
 
+	createdBook, err := h.BookStore.CreateBook(ctx, book)
+	if err != nil {
+		response.RespondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	response.RespondWithJSON(w, http.StatusCreated, createdBook)
 }
 
 func (h *BookHandler) searchBooks(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	title := r.URL.Query().Get("title")
 	author := r.URL.Query().Get("author")
 	genre := r.URL.Query().Get("genre")
@@ -108,9 +114,8 @@ func (h *BookHandler) searchBooks(w http.ResponseWriter, r *http.Request) {
 		SortOrder: sortOrder,
 	}
 
-	books, err := h.BookStore.SearchBooks(criteria)
+	books, err := h.BookStore.SearchBooks(ctx, criteria)
 	if err != nil {
-		fmt.Println("Error finding Books:", err)
 		response.RespondWithError(w, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
@@ -118,46 +123,47 @@ func (h *BookHandler) searchBooks(w http.ResponseWriter, r *http.Request) {
 	response.RespondWithJSON(w, http.StatusOK, books)
 }
 
-func (h *BookHandler) getBookById(w http.ResponseWriter, id int) {
-	book, lookUpError := h.BookStore.GetBook(id)
+func (h *BookHandler) getBookById(w http.ResponseWriter, r *http.Request, id int) {
+	ctx := r.Context()
+
+	book, lookUpError := h.BookStore.GetBook(ctx, id)
 	if lookUpError != nil {
-		fmt.Printf("Error finding the book using id : %d\nError: %v\n", id, lookUpError)
 		response.RespondWithError(w, http.StatusNotFound, "Book does not exist")
 		return
 	}
 
 	response.RespondWithJSON(w, http.StatusOK, book)
-
 }
 
 func (h *BookHandler) updateBook(w http.ResponseWriter, r *http.Request, id int) {
+	ctx := r.Context()
 	defer r.Body.Close()
 
 	var book models.Book
 	if err := json.NewDecoder(r.Body).Decode(&book); err != nil {
-		fmt.Println("JSON Decode Error in updateBook: ", err)
 		response.RespondWithError(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
 
 	if !h.AuthorStore.AuthorExists(book.Author.ID) {
-		log.Printf("Cannot create book: author %d not found", book.Author.ID)
+		log.Printf("Cannot update book: author %d not found", book.Author.ID)
 		response.RespondWithError(w, http.StatusNotFound, "Author not found")
 		return
 	}
 
-	updated_book, update_err := h.BookStore.UpdateBook(id, book)
+	updated_book, update_err := h.BookStore.UpdateBook(ctx, id, book)
 	if update_err != nil {
 		response.RespondWithError(w, http.StatusNotFound, "Book not found")
 		return
 	}
 
 	response.RespondWithJSON(w, http.StatusOK, updated_book)
-
 }
 
-func (h *BookHandler) deleteBook(w http.ResponseWriter, id int) {
-	delete_err := h.BookStore.DeleteBook(id)
+func (h *BookHandler) deleteBook(w http.ResponseWriter, r *http.Request, id int) {
+	ctx := r.Context()
+
+	delete_err := h.BookStore.DeleteBook(ctx, id)
 	if delete_err != nil {
 		response.RespondWithError(w, http.StatusNotFound, "Book not found")
 		return
@@ -165,3 +171,4 @@ func (h *BookHandler) deleteBook(w http.ResponseWriter, id int) {
 
 	response.RespondWithJSON(w, http.StatusOK, "Book deleted successfully")
 }
+

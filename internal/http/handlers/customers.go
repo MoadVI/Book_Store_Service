@@ -5,7 +5,6 @@ import (
 	"Book-Store/internal/response"
 	"Book-Store/internal/store"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -17,13 +16,15 @@ type CustomerHandler struct {
 
 func (h *CustomerHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	path := strings.Trim(r.URL.Path, "/")
+	path = strings.TrimSpace(path)
 	pathParts := strings.Split(path, "/")
 
 	var id int
 	var hasID bool
 
 	if len(pathParts) > 1 && pathParts[1] != "" {
-		parsedID, err := strconv.Atoi(pathParts[1])
+		idStr := strings.TrimSpace(pathParts[1])
+		parsedID, err := strconv.Atoi(idStr)
 		if err == nil {
 			id = parsedID
 			hasID = true
@@ -35,50 +36,50 @@ func (h *CustomerHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.createCustomer(w, r)
 	case http.MethodGet:
 		if hasID {
-			h.getCustomerByID(w, id)
+			h.getCustomer(w, r, id)
 		} else {
-			h.listCustomers(w)
+			h.listCustomers(w, r)
 		}
 	case http.MethodPut:
 		if !hasID {
-			response.RespondWithError(w, http.StatusBadRequest, "Missing Customer ID")
+			response.RespondWithError(w, http.StatusBadRequest, "Missing customer ID")
 			return
 		}
 		h.updateCustomer(w, r, id)
 	case http.MethodDelete:
 		if !hasID {
-			response.RespondWithError(w, http.StatusBadRequest, "Missing Customer ID")
+			response.RespondWithError(w, http.StatusBadRequest, "Missing customer ID")
 			return
 		}
-		h.deleteCustomer(w, id)
+		h.deleteCustomer(w, r, id)
 	default:
 		response.RespondWithError(w, http.StatusMethodNotAllowed, "Method not allowed")
-		return
 	}
 }
 
 func (h *CustomerHandler) createCustomer(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	defer r.Body.Close()
 
 	var customer models.Customer
 	if err := json.NewDecoder(r.Body).Decode(&customer); err != nil {
-		fmt.Println("JSON Decode error in createCustomer")
 		response.RespondWithError(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
 
-	created_customer, err := h.Store.CreateCustomer(customer)
+	createdCustomer, err := h.Store.CreateCustomer(ctx, customer)
 	if err != nil {
-		fmt.Printf("Failed to create Customer: %v\n", err)
-		response.RespondWithError(w, http.StatusInternalServerError, "Failed to create customer")
+		response.RespondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	response.RespondWithJSON(w, http.StatusCreated, created_customer)
+	response.RespondWithJSON(w, http.StatusCreated, createdCustomer)
 }
 
-func (h *CustomerHandler) getCustomerByID(w http.ResponseWriter, id int) {
-	customer, err := h.Store.GetCustomer(id)
+func (h *CustomerHandler) getCustomer(w http.ResponseWriter, r *http.Request, id int) {
+	ctx := r.Context()
+
+	customer, err := h.Store.GetCustomer(ctx, id)
 	if err != nil {
 		response.RespondWithError(w, http.StatusNotFound, "Customer not found")
 		return
@@ -87,10 +88,12 @@ func (h *CustomerHandler) getCustomerByID(w http.ResponseWriter, id int) {
 	response.RespondWithJSON(w, http.StatusOK, customer)
 }
 
-func (h *CustomerHandler) listCustomers(w http.ResponseWriter) {
-	customers, err := h.Store.ListCustomers()
+func (h *CustomerHandler) listCustomers(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	customers, err := h.Store.ListCustomers(ctx)
 	if err != nil {
-		response.RespondWithError(w, http.StatusInternalServerError, "Internal Server Error")
+		response.RespondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -98,6 +101,7 @@ func (h *CustomerHandler) listCustomers(w http.ResponseWriter) {
 }
 
 func (h *CustomerHandler) updateCustomer(w http.ResponseWriter, r *http.Request, id int) {
+	ctx := r.Context()
 	defer r.Body.Close()
 
 	var customer models.Customer
@@ -106,22 +110,24 @@ func (h *CustomerHandler) updateCustomer(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	updated_customer, err := h.Store.UpdateCustomer(id, customer)
+	updatedCustomer, err := h.Store.UpdateCustomer(ctx, id, customer)
 	if err != nil {
 		response.RespondWithError(w, http.StatusNotFound, "Customer not found")
 		return
 	}
 
-	response.RespondWithJSON(w, http.StatusOK, updated_customer)
+	response.RespondWithJSON(w, http.StatusOK, updatedCustomer)
 }
 
-func (h *CustomerHandler) deleteCustomer(w http.ResponseWriter, id int) {
-	err := h.Store.DeleteCustomer(id)
+func (h *CustomerHandler) deleteCustomer(w http.ResponseWriter, r *http.Request, id int) {
+	ctx := r.Context()
+
+	err := h.Store.DeleteCustomer(ctx, id)
 	if err != nil {
-		fmt.Printf("Got Error in deleteCustomer %v", err)
-		response.RespondWithError(w, http.StatusInternalServerError, "Customer not found")
+		response.RespondWithError(w, http.StatusNotFound, "Customer not found")
 		return
 	}
 
 	response.RespondWithJSON(w, http.StatusOK, "Customer deleted successfully")
 }
+

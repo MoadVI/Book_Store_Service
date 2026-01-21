@@ -94,20 +94,20 @@
 
 ### Orders API
 
-* ⬜ POST `/orders` – place an order
-* ⬜ GET `/orders/{id}` – retrieve order
-* ⬜ GET `/orders?customer_id=` – order history per customer
-* ⬜ Stock validation on order creation
-* ⬜ Order status lifecycle (`pending`, `paid`, `shipped`, `cancelled`)
-* ⬜ Automatic stock decrement on purchase
-* ⬜ In-memory order store with mutex
-* ⬜ JSON persistence for orders
-* ⬜ Order handler & business-logic tests
-* ⬜ Concurrency tests (simultaneous orders)
+* ~~⬜ POST `/orders` – place an order~~
+* ~~⬜ GET `/orders/{id}` – retrieve order~~
+* ~~⬜ GET `/orders?customer_id=` – order history per customer~~
+* ~~⬜ Stock validation on order creation~~
+* ~~⬜ Order status lifecycle (`pending`, `paid`, `shipped`, `cancelled`)~~
+* ~~⬜ Automatic stock decrement on purchase~~
+* ~~⬜ In-memory order store with mutex~~
+* ~~⬜ JSON persistence for orders~~
+* ~~⬜ Order handler~~
+* ~~⬜ Concurrency tests (simultaneous orders)~~
 
 ---
 
-* ⬜ Concurrent request tests
+* ~~⬜ Concurrent request tests~~
 
 ---
 ---
@@ -136,9 +136,9 @@
 
 ##  Concurrency & Context 
 
-* ⬜ Pass `context.Context` through handlers
+* ~~⬜ Pass `context.Context` through handlers~~
 * ⬜ Cancel background jobs on shutdown
-* ⬜ Respect request cancellation in long operations
+* ~~⬜ Respect request cancellation in long operations~~
 
 ---
 
@@ -215,9 +215,9 @@ go test ./internal/http/handlers/HandlersTests -v
 
 ~~1. Finish Authors API~~
 ~~2. Implement Customers~~
-3. Implement Orders
+~~3. Implement Orders~~
 4. Add background sales report generator
-5. Add graceful shutdown with contexts
+~~5. Add graceful shutdown with contexts~~
 6. Write Swagger spec
 7. Harden tests with concurrency
 

@@ -2,38 +2,44 @@ package store
 
 import (
 	"Book-Store/internal/models"
+	"context"
 	"time"
 )
 
 type BookStore interface {
-	CreateBook(book models.Book) (models.Book, error)
-	GetBook(id int) (models.Book, error)
-	UpdateBook(id int, book models.Book) (models.Book, error)
-	DeleteBook(id int) error
-	SearchBooks(criteria models.SearchCriteria) ([]models.Book, error)
+	CreateBook(ctx context.Context, book models.Book) (models.Book, error)
+	GetBook(ctx context.Context, id int) (models.Book, error)
+	UpdateBook(ctx context.Context, id int, book models.Book) (models.Book, error)
+	DeleteBook(ctx context.Context, id int) error
+	SearchBooks(ctx context.Context, criteria models.SearchCriteria) ([]models.Book, error)
+	BookExists(id int) bool
 }
 
 type AuthorStore interface {
-	CreateAuthor(author models.Author) (models.Author, error)
-	GetAuthor(id int) (models.Author, error)
-	ListAuthors() ([]models.Author, error)
-	UpdateAuthor(id int, author models.Author) (models.Author, error)
-	DeleteAuthor(id int) error
+	CreateAuthor(ctx context.Context, author models.Author) (models.Author, error)
+	GetAuthor(ctx context.Context, id int) (models.Author, error)
+	ListAuthors(ctx context.Context) ([]models.Author, error)
+	UpdateAuthor(ctx context.Context, id int, author models.Author) (models.Author, error)
+	DeleteAuthor(ctx context.Context, id int) error
 	AuthorExists(id int) bool
 }
 
 type CustomerStore interface {
-	CreateCustomer(customer models.Customer) (models.Customer, error)
-	GetCustomer(id int) (models.Customer, error)
-	UpdateCustomer(id int, customer models.Customer) (models.Customer, error)
-	ListCustomers() ([]models.Customer, error)
-	DeleteCustomer(id int) error
+	CreateCustomer(ctx context.Context, customer models.Customer) (models.Customer, error)
+	GetCustomer(ctx context.Context, id int) (models.Customer, error)
+	UpdateCustomer(ctx context.Context, id int, customer models.Customer) (models.Customer, error)
+	ListCustomers(ctx context.Context) ([]models.Customer, error)
+	DeleteCustomer(ctx context.Context, id int) error
+	CustomerExists(id int) bool
 }
 
 type OrderStore interface {
-	CreateOrder(order models.Order) (models.Order, error)
-	GetOrder(id int) (models.Order, error)
-	ListOrders() ([]models.Order, error)
-
-	GetOrdersInTimeRange(start, end time.Time) ([]models.Order, error)
+	CreateOrder(ctx context.Context, order models.Order) (models.Order, error)
+	GetOrder(ctx context.Context, id int) (models.Order, error)
+	ListOrders(ctx context.Context) ([]models.Order, error)
+	SearchOrderByStatus(ctx context.Context, status string) ([]models.Order, error)
+	CompleteOrder(ctx context.Context, id int) (bool, error)
+	CancelOrder(ctx context.Context, id int) (bool, error)
+	GetOrdersInTimeRange(ctx context.Context, start, end time.Time) ([]models.Order, error)
 }
+
