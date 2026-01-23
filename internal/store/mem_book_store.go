@@ -200,3 +200,35 @@ func (s *MemStore) BookExists(id int) bool {
 	_, exists := s.Books[id]
 	return exists
 }
+
+func (s *MemStore) BooksCount() int {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return len(s.Books)
+}
+
+func (s *MemStore) OutOfStock() []models.Book {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	outOfStock := make([]models.Book, 0)
+	for _, book := range s.Books {
+		if book.Stock == 0 {
+			outOfStock = append(outOfStock, book)
+		}
+	}
+
+	return outOfStock
+}
+
+func (s *MemStore) GetBooksPerGenre(genre string) []models.Book {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	books := make([]models.Book, 0)
+	for _, book := range s.Books {
+		if slices.Contains(book.Genres, genre) {
+			books = append(books, book)
+		}
+	}
+	return books
+}

@@ -122,3 +122,20 @@ func (s *MemStore) AuthorExists(id int) bool {
 	return exists
 }
 
+func (s *MemStore) AuthorsCount() int {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	return len(s.Authors)
+}
+
+func (s *MemStore) BooksPerAuthor() map[int]int {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	result := make(map[int]int)
+	for _, book := range s.Books {
+		result[book.Author.ID]++
+	}
+	return result
+}

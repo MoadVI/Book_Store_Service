@@ -1,22 +1,21 @@
 package config
 
-import "os"
+import (
+	"time"
+)
 
 type Config struct {
-	DBPath     string
-	ServerPort string
+	DBPath                string
+	ServerPort            string
+	ReportInterval        time.Duration
+	ReportOutputDirectory string
 }
 
 func LoadConfig() *Config {
 	return &Config{
-		DBPath:     getEnv("DB_PATH", "database.json"),
-		ServerPort: getEnv("PORT", "8080"),
+		DBPath:                "database.json",
+		ServerPort:            "8080",
+		ReportInterval:        24 * time.Hour,
+		ReportOutputDirectory: "output-reports",
 	}
-}
-
-func getEnv(key, defaultValue string) string {
-	if value, exists := os.LookupEnv(key); exists {
-		return value
-	}
-	return defaultValue
 }

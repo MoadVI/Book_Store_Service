@@ -13,6 +13,10 @@ type BookStore interface {
 	DeleteBook(ctx context.Context, id int) error
 	SearchBooks(ctx context.Context, criteria models.SearchCriteria) ([]models.Book, error)
 	BookExists(id int) bool
+
+	BooksCount() int
+	OutOfStock() []models.Book
+	GetBooksPerGenre(genre string) []models.Book
 }
 
 type AuthorStore interface {
@@ -22,6 +26,9 @@ type AuthorStore interface {
 	UpdateAuthor(ctx context.Context, id int, author models.Author) (models.Author, error)
 	DeleteAuthor(ctx context.Context, id int) error
 	AuthorExists(id int) bool
+
+	AuthorsCount() int
+	BooksPerAuthor() map[int]int
 }
 
 type CustomerStore interface {
@@ -31,6 +38,7 @@ type CustomerStore interface {
 	ListCustomers(ctx context.Context) ([]models.Customer, error)
 	DeleteCustomer(ctx context.Context, id int) error
 	CustomerExists(id int) bool
+	CustomersCount() int
 }
 
 type OrderStore interface {
@@ -42,4 +50,3 @@ type OrderStore interface {
 	CancelOrder(ctx context.Context, id int) (bool, error)
 	GetOrdersInTimeRange(ctx context.Context, start, end time.Time) ([]models.Order, error)
 }
-

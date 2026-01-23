@@ -129,3 +129,10 @@ func (s *MemStore) CustomerExists(id int) bool {
 	return exists
 }
 
+func (s *MemStore) CustomersCount() int {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	customersCount := len(s.Customers)
+	return customersCount
+}

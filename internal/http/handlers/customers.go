@@ -130,4 +130,3 @@ func (h *CustomerHandler) deleteCustomer(w http.ResponseWriter, r *http.Request,
 
 	response.RespondWithJSON(w, http.StatusOK, "Customer deleted successfully")
 }
-
