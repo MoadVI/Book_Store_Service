@@ -187,11 +187,11 @@ go run .
 
 ##  Next Milestones 
 
-~~1. Finish Authors API~~
-~~2. Implement Customers~~
-~~3. Implement Orders~~
-~~4. Add background sales report generator~~
-~~5. Add graceful shutdown with contexts~~
-6. Write OpenAPI specs
-~~7. Add Token and Password Authentication and Authorization using JWT~~
+- ~~1. Finish Authors API~~
+- ~~2. Implement Customers~~
+- ~~3. Implement Orders~~
+- ~~4. Add background sales report generator~~
+- ~~5. Add graceful shutdown with contexts~~
+- 6. Write OpenAPI specs
+- ~~7. Add Token and Password Authentication and Authorization using JWT~~
 
