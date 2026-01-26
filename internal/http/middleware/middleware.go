@@ -18,6 +18,7 @@ type ApiConfig struct {
 	authorsHits   atomic.Int64
 	customersHits atomic.Int64
 	ordersHits    atomic.Int64
+	Token         string
 }
 
 func (h *ApiConfig) ServeHTTP(w http.ResponseWriter, r *http.Request) {

@@ -14,11 +14,22 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
 	cfg := config.LoadConfig()
 	memStore := store.NewMemStore()
+
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found")
+	}
+
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatal("JWT_SECRET not found in environment")
+	}
 
 	apiCfg := &middleware.ApiConfig{}
 
@@ -33,7 +44,10 @@ func main() {
 	}
 
 	authorHandler := &handlers.AuthorHandler{Store: memStore}
-	customerHandler := &handlers.CustomerHandler{Store: memStore}
+	customerHandler := &handlers.CustomerHandler{
+		Store: memStore,
+		Cfg:   apiCfg,
+	}
 	orderHandler := &handlers.OrderHandler{Store: memStore}
 
 	reportStore := reports.NewReportStore(cfg.ReportOutputDirectory)

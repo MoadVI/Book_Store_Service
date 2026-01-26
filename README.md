@@ -75,7 +75,6 @@
 * ~~GET `/authors` – list all authors~~
 * ~~In-memory author store with mutex~~
 * ~~JSON persistence for authors~~
-* ⬜ Author handler unit tests
 
 ---
 
@@ -89,7 +88,6 @@
 * ~~In-memory customer store with mutex~~
 * ~~JSON persistence for customers~~
 * ~~Customer handler~~ 
-* ⬜ Customers tests
 ---
 
 ### Orders API
@@ -158,7 +156,7 @@
 ### Books Metrics
 
 * ~~⬜ total Books~~
-* ~~⬜ Books per genre ~~
+* ~~⬜ Books per genre~~
 * ~~⬜ Out of stock Books~
 
 ### Authors Metrics
@@ -175,7 +173,7 @@
 ##  Documentation
 
 * ~~README created and maintained~~
-* ⬜ Swagger / OpenAPI spec
+* ⬜ OpenAPI spec
 * ⬜ Endpoint examples for all resources
 
 ---
@@ -183,33 +181,9 @@
 ##  Running the Project
 
 ```bash
-go run main.go
+go run .
 ```
 
-Environment variables (optional):
-
-```bash
-export PORT=8080
-export DB_PATH=internal/db/database.json
-```
-
----
-
-##  Testing
-
-Run all tests:
-
-```bash
-go test ./... -v
-```
-
-Run handler tests only:
-
-```bash
-go test ./internal/http/handlers/HandlersTests -v
-```
-
----
 
 ##  Next Milestones 
 
@@ -218,6 +192,6 @@ go test ./internal/http/handlers/HandlersTests -v
 ~~3. Implement Orders~~
 ~~4. Add background sales report generator~~
 ~~5. Add graceful shutdown with contexts~~
-6. Write Swagger spec
-
+6. Write OpenAPI specs
+~~7. Add Token and Password Authentication and Authorization using JWT~~
 

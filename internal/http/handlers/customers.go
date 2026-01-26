@@ -1,17 +1,22 @@
 package handlers
 
 import (
+	"Book-Store/internal/authentication"
+	"Book-Store/internal/http/middleware"
 	"Book-Store/internal/models"
 	"Book-Store/internal/response"
 	"Book-Store/internal/store"
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type CustomerHandler struct {
 	Store store.CustomerStore
+	Cfg   *middleware.ApiConfig
 }
 
 func (h *CustomerHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -67,13 +72,55 @@ func (h *CustomerHandler) createCustomer(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	if customer.Email == "" {
+		response.RespondWithError(w, http.StatusBadRequest, "Email is required!")
+		return
+	}
+
+	if customer.Password == "" {
+		response.RespondWithError(w, http.StatusBadRequest, "Password is required!")
+		return
+	}
+
+	hashed_password, err := authentication.HashPassword(customer.Password)
+	if err != nil {
+		log.Println("Got error to create password Hash")
+		response.RespondWithError(w, http.StatusInternalServerError, "Could not create customer")
+		return
+	}
+
+	customer.Password = hashed_password
 	createdCustomer, err := h.Store.CreateCustomer(ctx, customer)
 	if err != nil {
 		response.RespondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	response.RespondWithJSON(w, http.StatusCreated, createdCustomer)
+	token, err := authentication.MakeJWT(
+		createdCustomer.ID,
+		h.Cfg.Token,
+		time.Hour,
+	)
+	if err != nil {
+		response.RespondWithError(w, http.StatusInternalServerError, "Error creating Token")
+		return
+	}
+
+	response.RespondWithJSON(w, http.StatusCreated, struct {
+		ID        int            `json:"id"`
+		Name      string         `json:"name"`
+		Email     string         `json:"email"`
+		Token     string         `json:"token"`
+		Address   models.Address `json:"address"`
+		CreatedAt time.Time      `json:"created_at"`
+	}{
+		ID:        createdCustomer.ID,
+		Name:      createdCustomer.Name,
+		Email:     createdCustomer.Email,
+		Token:     token,
+		Address:   createdCustomer.Address,
+		CreatedAt: createdCustomer.CreatedAt,
+	})
 }
 
 func (h *CustomerHandler) getCustomer(w http.ResponseWriter, r *http.Request, id int) {
@@ -130,3 +177,4 @@ func (h *CustomerHandler) deleteCustomer(w http.ResponseWriter, r *http.Request,
 
 	response.RespondWithJSON(w, http.StatusOK, "Customer deleted successfully")
 }
+

@@ -29,6 +29,12 @@ func (s *MemStore) CreateCustomer(ctx context.Context, customer models.Customer)
 		customer.CreatedAt = time.Now()
 	}
 
+	for _, c := range s.Customers {
+		if c.Email == customer.Email {
+			return models.Customer{}, errors.New("Email already exists")
+		}
+	}
+
 	s.Customers[customer.ID] = customer
 
 	if err := s.SaveToFile(); err != nil {
@@ -70,8 +76,16 @@ func (s *MemStore) UpdateCustomer(ctx context.Context, id int, customer models.C
 		return models.Customer{}, errors.New("Customer not found")
 	}
 
-	customer.ID = id
-	s.Customers[id] = customer
+	existing := s.Customers[id]
+
+	if customer.Name != "" {
+		existing.Name = customer.Name
+	}
+	if customer.Email != "" {
+		existing.Email = customer.Email
+	}
+
+	s.Customers[id] = existing
 
 	if err := s.SaveToFile(); err != nil {
 		return models.Customer{}, err

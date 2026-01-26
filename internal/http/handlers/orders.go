@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"Book-Store/internal/http/middleware"
 	"Book-Store/internal/models"
 	"Book-Store/internal/response"
 	"Book-Store/internal/store"
@@ -62,11 +63,15 @@ func (h *OrderHandler) createOrder(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	defer r.Body.Close()
 
+	userID := middleware.GetUserIDFromContext(ctx)
+
 	var order models.Order
 	if err := json.NewDecoder(r.Body).Decode(&order); err != nil {
 		response.RespondWithError(w, http.StatusBadRequest, "Invalid JSON")
 		return
 	}
+
+	order.Customer.ID = userID
 
 	resultChan := make(chan models.Order, 1)
 	errChan := make(chan error, 1)
