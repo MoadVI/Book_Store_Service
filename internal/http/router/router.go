@@ -17,19 +17,23 @@ func Router(
 	hitsHandler *middleware.ApiConfig,
 ) {
 	http.Handle("/books/", apiCfg.MiddlewareMetricsInc(bookHandler))
+	
 	http.Handle("/authors/", apiCfg.MiddlewareMetricsInc(authorHandler))
 
+	http.Handle("/customers/register", apiCfg.MiddlewareMetricsInc(customerHandler))
+	http.Handle("/customers/login", apiCfg.MiddlewareMetricsInc(customerHandler))
+	
 	http.Handle("/customers", apiCfg.MiddlewareMetricsInc(customerHandler))
 	http.Handle("/customers/", middleware.AuthMiddleware(apiCfg.Token,
 		apiCfg.MiddlewareMetricsInc(customerHandler)))
 
-	http.Handle("/orders", apiCfg.MiddlewareMetricsInc(orderHandler))
+	http.Handle("/orders", middleware.AuthMiddleware(apiCfg.Token,
+		apiCfg.MiddlewareMetricsInc(orderHandler)))
 	http.Handle("/orders/", middleware.AuthMiddleware(apiCfg.Token,
 		apiCfg.MiddlewareMetricsInc(orderHandler)))
 
 	http.Handle("/reports/sales", reportHandler)
 
 	http.Handle("/metrics", metricsHandler)
-
 	http.Handle("/metrics/hits", hitsHandler)
 }
